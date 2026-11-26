@@ -4,6 +4,12 @@ Panel de inversiones en TypeScript que consulta y guarda datos en PostgreSQL a t
 
 ## Ejecutar en Windows
 
+Con PostgreSQL en ejecución y `backend/.env` configurado, abrí [iniciar.bat](../iniciar.bat) desde la raíz. El lanzador prepara las tablas, inicia FastAPI y Next.js y muestra las direcciones de ambos. Presioná **Enter** o cerrá la consola para detenerlos.
+
+Podés ejecutar `iniciar.bat -Comprobar` para verificar el arranque y cerrar los servidores al terminar. Los registros quedan en `%LOCALAPPDATA%\Zeno\logs`.
+
+### Arranque manual
+
 Con PostgreSQL en ejecución, configurá `DATABASE_URL` en `backend/.env` con la base que querés usar. En PowerShell, desde `backend`:
 
 ```powershell
