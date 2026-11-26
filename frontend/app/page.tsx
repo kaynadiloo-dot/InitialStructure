@@ -1,65 +1,54 @@
-import Image from "next/image";
+﻿"use client";
+
+import { useCallback } from "react";
+import AppShell from "@/components/AppShell";
+import { Enlace, EstadoCarga, Marca } from "@/components/ui";
+import { useCuenta } from "@/context/SessionContext";
+import { api } from "@/lib/api";
+import { money, num } from "@/lib/format";
+import { useResource } from "@/lib/useResource";
+
+function Inicio() {
+  const { perfil, cuenta } = useCuenta();
+  const cargar = useCallback(() => Promise.all([api.cartera(cuenta.id), api.activos(), api.rankings()]), [cuenta.id]);
+  const recurso = useResource(cargar);
+  if (recurso.error || !recurso.data) return <EstadoCarga {...recurso} />;
+  const [cartera, activos, ranking] = recurso.data;
+  const favoritos = activos.filter((a) => perfil.favoritos.includes(a.id));
+
+  return <>
+    <div className="home-head"><Marca /><span className="pill neutral">Modo simulación</span></div>
+    <section className="hero">
+      <div>
+        <div className="hero-label">Hola, {perfil.inversor.nombre.split(" ")[0]}. Tu saldo en pesos</div>
+        <div className="hero-num">{money(cartera.cuenta.saldo_ars, "ARS")}</div>
+        <div className="hero-sub">Cuenta comitente {cartera.cuenta.numero_comitente}</div>
+      </div>
+      <div className="card kpi"><small>Saldo en dólares</small><strong>{money(cartera.cuenta.saldo_usd, "USD")}</strong>
+        <Enlace className="btn btn-primary btn-sm" href="/movimientos">Depositar o extraer</Enlace>
+      </div>
+    </section>
+    <div className="home-grid">
+      <section className="card">
+        <div className="ctitle"><h2>Inversiones</h2><Enlace className="btn btn-ghost btn-sm" href="/cartera">Ver cartera</Enlace></div>
+        <div className="kpi"><small>Posiciones valorizadas en ARS</small><strong>{money(cartera.total_valorizado.ARS, "ARS")}</strong><small>{cartera.posiciones.length} posiciones abiertas</small></div>
+      </section>
+      <section className="card">
+        <div className="ctitle"><h2>Favoritos</h2><Enlace className="btn btn-ghost btn-sm" href="/mercado">Mercado</Enlace></div>
+        {favoritos.length ? favoritos.slice(0, 5).map((a) => <Enlace className="home-row" key={a.id} href={`/mercado/${a.id}`}>
+          <b>{a.ticker}</b><span>{money(a.precio_actual, a.moneda)}</span>
+        </Enlace>) : <p className="empty">Todavía no tenés activos favoritos.</p>}
+      </section>
+      <section className="card">
+        <div className="ctitle"><h2>Más operados esta semana</h2><Enlace className="btn btn-ghost btn-sm" href="/rankings">Rankings</Enlace></div>
+        {ranking.operados.length ? ranking.operados.slice(0, 5).map(({ activo, unidades }) => <Enlace className="home-row" key={activo.id} href={`/mercado/${activo.id}`}>
+          <b>{activo.ticker}</b><span>{num(unidades)} unidades</span>
+        </Enlace>) : <p className="empty">Todavía no hay operaciones registradas.</p>}
+      </section>
+    </div>
+  </>;
+}
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+  return <AppShell><Inicio /></AppShell>;
 }

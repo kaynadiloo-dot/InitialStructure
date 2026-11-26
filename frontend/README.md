@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# Zeno Investments
 
-## Getting Started
+Panel de inversiones en TypeScript que consulta y guarda datos en PostgreSQL a través de FastAPI.
 
-First, run the development server:
+## Ejecutar en Windows
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Con PostgreSQL en ejecución, configurá `DATABASE_URL` en `backend/.env` con la base que querés usar. En PowerShell, desde `backend`:
+
+```powershell
+.\venv\Scripts\python.exe -m src.inversiones_app
+.\venv\Scripts\python.exe -m uvicorn src.app:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+En otra terminal, desde `frontend` con Node.js 20.9 o superior:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+npm.cmd ci
+npm.cmd run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abrí [Zeno](http://localhost:3000). Next.js reenvía `/api/*` a FastAPI en `http://127.0.0.1:8000`. Si cambiás el puerto de FastAPI, copiá `.env.example` a `.env.local` y ajustá `API_URL`. La API se puede consultar en [Swagger](http://127.0.0.1:8000/docs).
 
-## Learn More
+El panel está pensado para una simulación local. Podés crear un inversor con su cuenta comitente o abrir un inversor existente por ID. Los precios se administran desde el catálogo. Las operaciones y los movimientos guardan sus cambios de saldo dentro de la misma transacción.
 
-To learn more about Next.js, take a look at the following resources:
+Las compras, ventas y conversiones MEP se pueden ejecutar de lunes a viernes desde las 11:00 hasta el cierre a las 17:00, hora de Buenos Aires. Para usar **Dólar MEP**, cargá y habilitá AL30 en ARS y AL30D en USD. El presupuesto de la orden incluye la comisión de compra. El historial registra las dos operaciones y el resultado de la conversión queda reflejado en ambos saldos.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+La **Cartera** muestra valorización, rendimiento y composición por moneda. **Operaciones** permite filtrar por fecha, tipo de orden y ticker. Los resultados anuales suman las ventas que tienen una ganancia o pérdida realizada registrada. **Rankings** ordena los activos por unidades operadas en los últimos siete días y por cantidad de favoritos.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Consultar los datos en pgAdmin
 
-## Deploy on Vercel
+Abrí el Query Tool en la base indicada por `DATABASE_URL`. Por ejemplo:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```sql
+SELECT i.id, i.nombre, c.numero_comitente, c.saldo_ars, c.saldo_usd
+FROM public.inversores AS i
+JOIN public.cuentas AS c ON c.inversor_id = i.id;
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+SELECT * FROM public.movimientos ORDER BY id DESC;
+SELECT * FROM public.operaciones ORDER BY id DESC;
+```
