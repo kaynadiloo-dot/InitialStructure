@@ -1,5 +1,5 @@
 import type {
-  Activo, ActivoCrear, Cartera, GananciaAnual, Historial, Inversor, InversorCrear, Mercado, Moneda,
+  Activo, ActivoCrear, Cartera, GananciaAnual, Historial, Inversor, InversorCrear, Moneda,
   Movimiento, Operacion, PagoDividendo, Perfil, PerfilPanel, Rankings, ResultadoMep, TipoOrden, TipoTransferencia,
 } from "./types";
 
@@ -24,6 +24,10 @@ async function request<T>(path: string, method = "GET", body?: unknown): Promise
   if (res.status === 204) return undefined as T;
   const datos = await res.json().catch(() => null);
   if (!res.ok) {
+    if (res.status === 401 && path !== "/panel/mi/perfil" && typeof window !== "undefined"
+      && window.location.pathname !== "/login") {
+      window.location.replace("/login");
+    }
     const detalle = datos?.detail;
     const campos = Array.isArray(detalle)
       ? detalle.map(({ loc, msg }) => [loc.slice(1).join("."), msg].filter(Boolean).join(" · ")).join(". ")
@@ -39,29 +43,29 @@ function query(filtros: Record<string, string>) {
 }
 
 export const api = {
-  perfil: (id: number) => request<PerfilPanel>(`/panel/inversores/${id}`),
-  alta: (datos: InversorCrear) => request<PerfilPanel>("/panel/inversores", "POST", datos),
-  abrirCuenta: (id: number) => request<PerfilPanel>(`/panel/inversores/${id}/cuenta`, "POST"),
-  cambiarPerfil: (id: number, perfil_riesgo: Perfil) => request<Inversor>(`/inversores/${id}/perfil`, "PATCH", { perfil_riesgo }),
-  mercado: () => request<Mercado>("/panel/mercado"),
+  perfil: () => request<PerfilPanel>("/panel/mi/perfil"),
+  ingresar: (nombre_cuenta: string, password: string) => request<PerfilPanel>("/panel/sesion", "POST", { nombre_cuenta, password }),
+  salir: () => request<void>("/panel/sesion", "DELETE"),
+  alta: (datos: InversorCrear & { nombre_cuenta: string; password: string }) =>
+    request<PerfilPanel>("/panel/inversores", "POST", datos),
+  abrirCuenta: () => request<PerfilPanel>("/panel/mi/cuenta", "POST"),
+  cambiarPerfil: (perfil_riesgo: Perfil) => request<Inversor>("/panel/mi/perfil", "PATCH", { perfil_riesgo }),
   activos: (filtros: Record<string, string> = {}) => request<Activo[]>("/activos" + query(filtros)),
   activo: (id: number) => request<Activo>(`/activos/${id}`),
   crearActivo: (datos: ActivoCrear) => request<Activo>("/activos", "POST", datos),
   cambiarPrecio: (id: number, precio: string) => request<Activo>(`/activos/${id}/precio`, "PATCH", { precio }),
   actualizarActivo: ({ id, ...datos }: Activo) => request<Activo>(`/activos/${id}`, "PUT", datos),
-  marcarFavorito: (inversor_id: number, activo_id: number) =>
-    request("/favoritos", "POST", { inversor_id, activo_id }),
-  quitarFavorito: (inversorId: number, activoId: number) =>
-    request<void>(`/favoritos/${inversorId}/${activoId}`, "DELETE"),
-  cartera: (id: number) => request<Cartera>(`/cuentas/${id}/cartera`),
-  movimientos: (id: number) => request<Movimiento[]>(`/cuentas/${id}/movimientos`),
-  historial: (id: number, filtros: Record<string, string>) => request<Historial>(`/cuentas/${id}/operaciones` + query(filtros)),
-  ganancias: (id: number) => request<GananciaAnual[]>(`/cuentas/${id}/ganancias-realizadas`),
-  transferir: (id: number, tipo: TipoTransferencia, moneda: Moneda, monto: string) =>
-    request<Movimiento>(`/cuentas/${id}/${tipo === "deposito" ? "depositos" : "extracciones"}`, "POST", { moneda, monto }),
-  operar: (id: number, activo_id: number, tipo: TipoOrden, cantidad: string) =>
-    request<Operacion>(`/cuentas/${id}/${tipo === "compra" ? "compras" : "ventas"}`, "POST", { activo_id, cantidad }),
-  mep: (id: number, monto_ars: string) => request<ResultadoMep>(`/cuentas/${id}/mep`, "POST", { monto_ars }),
+  marcarFavorito: (activoId: number) => request<void>(`/panel/mi/favoritos/${activoId}`, "POST"),
+  quitarFavorito: (activoId: number) => request<void>(`/panel/mi/favoritos/${activoId}`, "DELETE"),
+  cartera: () => request<Cartera>("/panel/mi/cartera"),
+  movimientos: () => request<Movimiento[]>("/panel/mi/movimientos"),
+  historial: (filtros: Record<string, string>) => request<Historial>("/panel/mi/operaciones" + query(filtros)),
+  ganancias: () => request<GananciaAnual[]>("/panel/mi/ganancias-realizadas"),
+  transferir: (tipo: TipoTransferencia, moneda: Moneda, monto: string) =>
+    request<Movimiento>("/panel/mi/movimientos", "POST", { tipo, moneda, monto }),
+  operar: (activo_id: number, tipo: TipoOrden, cantidad: string) =>
+    request<Operacion>("/panel/mi/operaciones", "POST", { tipo, activo_id, cantidad }),
+  mep: (monto_ars: string) => request<ResultadoMep>("/panel/mi/mep", "POST", { monto_ars }),
   pagarDividendo: (activo_id: number, monto_por_unidad: string, fecha_pago: string) =>
     request<PagoDividendo>("/panel/dividendos", "POST", { activo_id, monto_por_unidad, fecha_pago }),
   rankings: () => request<Rankings>("/panel/rankings"),

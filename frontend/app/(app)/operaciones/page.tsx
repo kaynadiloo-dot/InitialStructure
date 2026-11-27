@@ -2,17 +2,15 @@
 
 import { useCallback, useState } from "react";
 import { Campo, Elegir, Enlace, EstadoCarga, Head, Tabla } from "@/components/ui";
-import { useCuenta } from "@/context/SessionContext";
 import { api } from "@/lib/api";
 import { fecha, money, num } from "@/lib/format";
 import { useResource } from "@/lib/useResource";
 
 export default function OperacionesPage() {
-  const { cuenta } = useCuenta();
   const [filtros, setFiltros] = useState<Record<string, string>>({});
   const cargar = useCallback(() => Promise.all([
-    api.historial(cuenta.id, filtros), api.ganancias(cuenta.id),
-  ]), [cuenta.id, filtros]);
+    api.historial(filtros), api.ganancias(),
+  ]), [filtros]);
   const recurso = useResource(cargar);
 
   return <>

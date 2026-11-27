@@ -20,7 +20,7 @@ const nav = [
 ];
 
 export default function AppShell({ children }: { children: ReactNode }) {
-  const { perfil, pendiente, error, seleccionar, salir } = useSession();
+  const { perfil, pendiente, error, setPerfil, salir } = useSession();
   const ruta = usePathname();
   const [menu, setMenu] = useState(false);
   const [acciones, setAcciones] = useState(false);
@@ -78,18 +78,19 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </Enlace>
           <div className="profile-pop">
             <button type="button" className="pp-item" onClick={alternarTema}>{oscuro ? "Modo claro" : "Modo oscuro"}</button>
-            <button type="button" className="pp-item danger" onClick={salir}>Cambiar de inversor</button>
+            <button type="button" className="pp-item danger" onClick={salir}>Cerrar sesión</button>
           </div>
         </div>
       </div>
     </aside>
     <main className="main"><div className="view">
+      {error && <p className="err" role="alert">{error}</p>}
       {cuenta ? children : <section className="card">
         <Marca />
         <h1>Abrí tu cuenta comitente</h1>
         <p className="muted">Tu inversor ya está registrado. Creá la cuenta para registrar fondos y operar.</p>
         <Formulario boton="Abrir cuenta" enviar={async () => {
-          seleccionar(await api.abrirCuenta(inversor.id));
+          setPerfil(await api.abrirCuenta());
           return "Cuenta comitente abierta.";
         }} />
       </section>}

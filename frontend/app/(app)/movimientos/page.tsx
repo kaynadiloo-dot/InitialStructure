@@ -2,7 +2,6 @@
 
 import { useCallback } from "react";
 import { Campo, Elegir, EstadoCarga, Formulario, Head, Tabla } from "@/components/ui";
-import { useCuenta } from "@/context/SessionContext";
 import { api } from "@/lib/api";
 import { fecha, monedas, money } from "@/lib/format";
 import type { Moneda, TipoTransferencia } from "@/lib/types";
@@ -11,8 +10,7 @@ import { useResource } from "@/lib/useResource";
 const nombres = { deposito: "Depósito", extraccion: "Extracción", dividendo: "Dividendo" };
 
 export default function MovimientosPage() {
-  const { cuenta } = useCuenta();
-  const cargar = useCallback(() => Promise.all([api.cartera(cuenta.id), api.movimientos(cuenta.id)]), [cuenta.id]);
+  const cargar = useCallback(() => Promise.all([api.cartera(), api.movimientos()]), []);
   const recurso = useResource(cargar);
   if (recurso.error || !recurso.data) return <EstadoCarga {...recurso} />;
   const [cartera, movimientos] = recurso.data;
@@ -23,7 +21,7 @@ export default function MovimientosPage() {
       <div className="card kpi"><small>Saldo en pesos</small><strong>{money(cartera.cuenta.saldo_ars, "ARS")}</strong></div>
       <div className="card kpi"><small>Saldo en dólares</small><strong>{money(cartera.cuenta.saldo_usd, "USD")}</strong></div>
       <Formulario className="card" boton="Confirmar movimiento" limpiar enviar={async (datos) => {
-        const mov = await api.transferir(cuenta.id, datos.get("tipo") as TipoTransferencia,
+        const mov = await api.transferir(datos.get("tipo") as TipoTransferencia,
           datos.get("moneda") as Moneda, String(datos.get("monto")));
         recurso.reload();
         return `${nombres[mov.tipo]} por ${money(mov.monto, mov.moneda)} confirmado.`;

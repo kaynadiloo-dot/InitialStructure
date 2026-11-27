@@ -24,8 +24,8 @@ export default function MercadoPage() {
     setAviso("");
     const quitar = perfil.favoritos.includes(activo.id);
     try {
-      if (quitar) await api.quitarFavorito(perfil.inversor.id, activo.id);
-      else await api.marcarFavorito(perfil.inversor.id, activo.id);
+      if (quitar) await api.quitarFavorito(activo.id);
+      else await api.marcarFavorito(activo.id);
       setPerfil((actual) => actual && ({
         ...actual, favoritos: quitar ? actual.favoritos.filter((id) => id !== activo.id) : [...actual.favoritos, activo.id],
       }));
@@ -44,7 +44,8 @@ export default function MercadoPage() {
     && `${a.ticker} ${a.nombre}`.toLowerCase().includes(palabra));
 
   return <>
-    <Head title="Mercado" sub="Acciones, CEDEARs y bonos del simulador" />
+    <Head title="Mercado" sub="Acciones, CEDEARs y bonos con precios del simulador"
+      extra={<span className="pill up">Abierto 24 horas</span>} />
     <section className="card">
       <div className="inline-form panel-gap">
         <label className="field">Buscar<input type="search" placeholder="Ticker o nombre" value={buscar} onChange={(e) => setBuscar(e.target.value)} /></label>

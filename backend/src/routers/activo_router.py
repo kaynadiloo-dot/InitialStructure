@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from src.db.connection import get_db
+from src.middlewares.sesion_inversor_middleware import autorizar_ruta_inversiones
 from src.dtos.activo_dto import CreateActivoDTO, ActivoResponseDTO
 from src.dtos.panel_dto import ActivoFavoritoPanelDTO, ActivoOperadoPanelDTO
 from src.schemas.activo_schema import CreateActivoSchema, Moneda, PrecioActivoSchema, TipoActivo
@@ -9,7 +10,7 @@ from src.schemas.inversiones_tipos import IdPositivo
 from src.services.activo_service import ActivoService
 from src.services.panel_service import PanelService
 
-router = APIRouter(prefix="/activos", tags=["activos"])
+router = APIRouter(prefix="/activos", tags=["activos"], dependencies=[Depends(autorizar_ruta_inversiones)])
 
 
 @router.get("", response_model=list[ActivoResponseDTO])

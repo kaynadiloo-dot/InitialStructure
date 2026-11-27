@@ -26,9 +26,15 @@ npm.cmd run dev
 
 Abrí [Zeno](http://localhost:3000). Next.js reenvía `/api/*` a FastAPI en `http://127.0.0.1:8000`. Si cambiás el puerto de FastAPI, copiá `.env.example` a `.env.local` y ajustá `API_URL`. La API se puede consultar en [Swagger](http://127.0.0.1:8000/docs).
 
-El panel está pensado para una simulación local. Podés crear un inversor con su cuenta comitente o abrir un inversor existente por ID. Los precios se administran desde el catálogo. Las operaciones y los movimientos guardan sus cambios de saldo dentro de la misma transacción.
+El panel está pensado para una simulación local. Al crear una cuenta comitente elegís un nombre de cuenta único y una contraseña de 8 a 128 caracteres. Usá esas credenciales para iniciar sesión. Los precios se administran desde el catálogo. Las operaciones y los movimientos guardan sus cambios de saldo dentro de la misma transacción.
 
-Las compras, ventas y conversiones MEP se pueden ejecutar de lunes a viernes desde las 11:00 hasta el cierre a las 17:00, hora de Buenos Aires. Para usar **Dólar MEP**, cargá y habilitá AL30 en ARS y AL30D en USD. El presupuesto de la orden incluye la comisión de compra. El historial registra las dos operaciones y el resultado de la conversión queda reflejado en ambos saldos.
+Para asignar credenciales a un inversor anterior, primero prepará las tablas con el inicializador. Luego ejecutá este comando desde `backend` e ingresá el correo registrado y las nuevas credenciales en la consola:
+
+```powershell
+.\venv\Scripts\python.exe -m src.activar_inversor
+```
+
+Las compras, ventas y conversiones MEP se pueden ejecutar las 24 horas, todos los días. Para usar **Dólar MEP**, cargá y habilitá AL30 en ARS y AL30D en USD. El presupuesto de la orden incluye la comisión de compra. El historial registra las dos operaciones y el resultado de la conversión queda reflejado en ambos saldos.
 
 La **Cartera** muestra valorización, rendimiento y composición por moneda. **Operaciones** permite filtrar por fecha, tipo de orden y ticker. Los resultados anuales suman las ventas que tienen una ganancia o pérdida realizada registrada. **Rankings** ordena los activos por unidades operadas en los últimos siete días y por cantidad de favoritos.
 

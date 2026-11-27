@@ -1,6 +1,7 @@
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP, localcontext
 from typing import Literal
+from secrets import token_hex
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -28,7 +29,7 @@ from src.mappers.movimiento_mapper import to_movimiento_response
 from src.mappers.operacion_mapper import to_operacion_response
 from src.mappers.tenencia_mapper import to_tenencia_response
 from src.utils.errors import AppError, ConflictError, NotFoundError
-from src.utils.horario_mercado import HORA_ARGENTINA, ahora_mercado, comprobar_horario
+from src.utils.horario_mercado import HORA_ARGENTINA, ahora_mercado
 
 
 COMISION = Decimal("0.005")
@@ -81,7 +82,7 @@ class PanelService:
         ).first()
 
     def _abrir_cuenta(self, inversor_id: int) -> Cuenta:
-        cuenta = Cuenta(inversor_id=inversor_id, numero_comitente=f"COM-{inversor_id:08d}")
+        cuenta = Cuenta(inversor_id=inversor_id, numero_comitente=f"COM-{token_hex(8).upper()}")
         self.db.add(cuenta)
         self.db.flush()
         return cuenta
@@ -99,9 +100,9 @@ class PanelService:
     def perfil(self, inversor_id: int) -> PerfilPanelDTO:
         return self._perfil(self._inversor(inversor_id), self._cuenta_del_inversor(inversor_id))
 
-    def alta(self, dto: CreateInversorDTO) -> PerfilPanelDTO:
+    def alta(self, dto: CreateInversorDTO, nombre_cuenta: str, password_hash: str) -> PerfilPanelDTO:
         with self.db.begin():
-            inversor = Inversor(**dto.model_dump())
+            inversor = Inversor(**dto.model_dump(), nombre_cuenta=nombre_cuenta, password_hash=password_hash)
             self.db.add(inversor)
             self.db.flush()
             return self._perfil(inversor, self._abrir_cuenta(inversor.id))
@@ -257,7 +258,6 @@ class PanelService:
             activo = self._activo(activo_id)
             cuenta = self._cuenta(cuenta_id, bloqueo=True)
             ahora = ahora_mercado()
-            comprobar_horario(ahora)
             if not activo.activo:
                 raise ConflictError("El activo está suspendido.")
             campo = SALDOS.get(activo.moneda)
@@ -310,7 +310,6 @@ class PanelService:
                 raise ConflictError("El catálogo debe incluir AL30 en pesos y AL30D en dólares.")
             cuenta = self._cuenta(cuenta_id, bloqueo=True)
             ahora = ahora_mercado()
-            comprobar_horario(ahora)
             if not al30.activo or not al30d.activo:
                 raise ConflictError("AL30 y AL30D deben estar habilitados para operar.")
             self._validar_riesgo(cuenta, al30)

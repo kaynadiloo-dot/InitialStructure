@@ -2,21 +2,17 @@
 
 import { useCallback, useState } from "react";
 import { Campo, Enlace, EstadoCarga, Formulario, Head } from "@/components/ui";
-import { useCuenta } from "@/context/SessionContext";
 import { api } from "@/lib/api";
 import { money, num } from "@/lib/format";
 import type { ResultadoMep } from "@/lib/types";
-import { useMercado } from "@/lib/useMercado";
 import { useResource } from "@/lib/useResource";
 
 export default function MepPage() {
-  const { cuenta } = useCuenta();
   const [resultado, setResultado] = useState<ResultadoMep | null>(null);
   const cargar = useCallback(() => Promise.all([
-    api.cartera(cuenta.id), api.activos({ tipo: "bono" }),
-  ]), [cuenta.id]);
+    api.cartera(), api.activos({ tipo: "bono" }),
+  ]), []);
   const recurso = useResource(cargar);
-  const mercado = useMercado();
   if (recurso.error || !recurso.data) return <EstadoCarga {...recurso} />;
   const [cartera, bonos] = recurso.data;
   const al30 = bonos.find((a) => a.ticker.toUpperCase() === "AL30" && a.moneda === "ARS" && a.activo);
@@ -33,10 +29,8 @@ export default function MepPage() {
       <section className="card">
         <h2>Convertir pesos a dólares</h2>
         {!al30 || !al30d ? <p>Para operar, tienen que estar habilitados AL30 en ARS y AL30D en USD. <Enlace href="/admin">Ver catálogo</Enlace></p>
-          : !mercado.data || mercado.error ? <EstadoCarga {...mercado} />
-          : !mercado.data.abierto ? <p className="empty">Mercado cerrado. {mercado.data.horario}.</p>
           : <Formulario boton="Convertir a dólares" limpiar enviar={async (datos) => {
-            const conversion = await api.mep(cuenta.id, String(datos.get("monto")));
+            const conversion = await api.mep(String(datos.get("monto")));
             setResultado(conversion);
             recurso.reload();
             return `${money(conversion.monto_usd_acreditado, "USD")} acreditados.`;

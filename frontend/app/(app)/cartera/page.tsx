@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback } from "react";
 import { Donut } from "@/components/Donut";
 import { Enlace, EstadoCarga, Head, Tabla } from "@/components/ui";
 import { useCuenta } from "@/context/SessionContext";
@@ -10,8 +9,7 @@ import { useResource } from "@/lib/useResource";
 
 export default function CarteraPage() {
   const { cuenta } = useCuenta();
-  const cargar = useCallback(() => api.cartera(cuenta.id), [cuenta.id]);
-  const recurso = useResource(cargar);
+  const recurso = useResource(api.cartera);
   if (recurso.error || !recurso.data) return <EstadoCarga {...recurso} />;
   const { posiciones, total_valorizado, composicion_por_tipo } = recurso.data;
 

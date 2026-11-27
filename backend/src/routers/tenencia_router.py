@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from src.db.connection import get_db
+from src.middlewares.sesion_inversor_middleware import autorizar_ruta_inversiones
 from src.dtos.tenencia_dto import CreateTenenciaDTO, TenenciaResponseDTO, UpdateTenenciaDTO
 from src.schemas.tenencia_schema import CreateTenenciaSchema, UpdateTenenciaSchema
 from src.schemas.inversiones_tipos import IdPositivo
 from src.services.tenencia_service import TenenciaService
 
-router = APIRouter(prefix="/tenencias", tags=["tenencias"])
+router = APIRouter(prefix="/tenencias", tags=["tenencias"], dependencies=[Depends(autorizar_ruta_inversiones)])
 
 
 @router.post("/", response_model=TenenciaResponseDTO, status_code=status.HTTP_201_CREATED)

@@ -12,13 +12,11 @@ export interface InversorCrear {
 }
 
 export interface Inversor extends InversorCrear {
-  id: number;
+  nombre_cuenta: string;
   fecha_alta: string;
 }
 
 export interface Cuenta {
-  id: number;
-  inversor_id: number;
   numero_comitente: string;
   saldo_ars: string;
   saldo_usd: string;
@@ -45,7 +43,6 @@ export interface Activo extends ActivoCrear {
 }
 
 export interface Posicion {
-  cuenta_id: number;
   activo_id: number;
   cantidad: string;
   precio_promedio: string;
@@ -95,12 +92,6 @@ export interface Historial {
 export interface GananciaAnual {
   anio: number;
   total_por_moneda: PorMoneda;
-}
-
-export interface Mercado {
-  abierto: boolean;
-  hora_argentina: string;
-  horario: string;
 }
 
 export interface ResultadoMep {

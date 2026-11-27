@@ -9,8 +9,8 @@ import { money, num } from "@/lib/format";
 import { useResource } from "@/lib/useResource";
 
 function Inicio() {
-  const { perfil, cuenta } = useCuenta();
-  const cargar = useCallback(() => Promise.all([api.cartera(cuenta.id), api.activos(), api.rankings()]), [cuenta.id]);
+  const { perfil } = useCuenta();
+  const cargar = useCallback(() => Promise.all([api.cartera(), api.activos(), api.rankings()]), []);
   const recurso = useResource(cargar);
   if (recurso.error || !recurso.data) return <EstadoCarga {...recurso} />;
   const [cartera, activos, ranking] = recurso.data;

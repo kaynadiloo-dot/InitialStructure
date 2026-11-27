@@ -16,15 +16,15 @@ export default function PerfilPage() {
       <section className="card">
         <h2>Datos de la cuenta</h2>
         <dl className="profile-data">
-          <dt>ID de inversor</dt><dd>{inversor.id}</dd>
+          <dt>Nombre de cuenta</dt><dd>{inversor.nombre_cuenta}</dd>
           <dt>Correo electrónico</dt><dd>{inversor.email}</dd>
           <dt>CUIT</dt><dd>{inversor.cuit}</dd>
           <dt>Cuenta comitente</dt><dd>{cuenta.numero_comitente}</dd>
         </dl>
-        <button type="button" className="btn btn-ghost" onClick={salir}>Cambiar de inversor</button>
+        <button type="button" className="btn btn-ghost" onClick={salir}>Cerrar sesión</button>
       </section>
       <Formulario className="card" boton="Guardar perfil" enviar={async (datos) => {
-        const actualizado = await api.cambiarPerfil(inversor.id, datos.get("perfil_riesgo") as Perfil);
+        const actualizado = await api.cambiarPerfil(datos.get("perfil_riesgo") as Perfil);
         setPerfil((actual) => actual && ({ ...actual, inversor: actualizado }));
         return "Perfil de riesgo actualizado.";
       }}>

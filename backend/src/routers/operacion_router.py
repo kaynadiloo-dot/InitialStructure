@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from src.db.connection import get_db
+from src.middlewares.sesion_inversor_middleware import autorizar_ruta_inversiones
 from src.dtos.operacion_dto import CreateOperacionDTO, OperacionResponseDTO
 from src.schemas.operacion_schema import CreateOperacionSchema
 from src.schemas.inversiones_tipos import IdPositivo
@@ -9,7 +10,7 @@ from src.services.operacion_service import OperacionService
 from src.schemas.panel_schema import OrdenCuentaSchema
 from src.services.panel_service import PanelService
 
-router = APIRouter(prefix="/operaciones", tags=["operaciones"])
+router = APIRouter(prefix="/operaciones", tags=["operaciones"], dependencies=[Depends(autorizar_ruta_inversiones)])
 
 
 @router.post("/", response_model=OperacionResponseDTO, status_code=status.HTTP_201_CREATED)

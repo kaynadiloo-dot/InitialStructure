@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from src.db.connection import get_db
+from src.middlewares.sesion_inversor_middleware import autorizar_ruta_inversiones
 from src.dtos.movimiento_dto import CreateMovimientoDTO, MovimientoResponseDTO
 from src.schemas.movimiento_schema import CreateMovimientoSchema
 from src.schemas.inversiones_tipos import IdPositivo
@@ -9,7 +10,7 @@ from src.services.movimiento_service import MovimientoService
 from src.schemas.panel_schema import TransferenciaCuentaSchema
 from src.services.panel_service import PanelService
 
-router = APIRouter(prefix="/movimientos", tags=["movimientos"])
+router = APIRouter(prefix="/movimientos", tags=["movimientos"], dependencies=[Depends(autorizar_ruta_inversiones)])
 
 
 @router.post("/", response_model=MovimientoResponseDTO, status_code=status.HTTP_201_CREATED)
